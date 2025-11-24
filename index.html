@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MealMaster - Weekly Meal Planner</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --primary-dark: #3a5982;
+            --secondary: #6b8cbc;
+            --accent: #ff7e5f;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --success: #28a745;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --border-radius: 12px;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .logo i {
+            color: var(--accent);
+        }
+
+        .app-controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--primary);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .tabs {
+            display: flex;
+            background-color: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+        }
+
+        .tab.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background-color: var(--light-gray);
+        }
+
+        .tab-content {
+            display: none;
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .week-planner {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .day-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .day-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .day-header {
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .meal-select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid var(--light-gray);
+            background-color: var(--light);
+            font-size: 0.9rem;
+        }
+
+        .grocery-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .category-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .category-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .category-items {
+            padding: 15px;
+        }
+
+        .grocery-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .grocery-item:last-child {
+            border-bottom: none;
+        }
+
+        .grocery-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--success);
+        }
+
+        .grocery-item label {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .grocery-item.checked label {
+            text-decoration: line-through;
+            color: var(--gray);
+        }
+
+        .meal-manager {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+
+        .meal-list {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .meal-item {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background-color: var(--light);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .meal-item:hover {
+            background-color: var(--light-gray);
+        }
+
+        .meal-item.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .meal-detail {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--light-gray);
+            font-size: 1rem;
+        }
+
+        .ingredient-list {
+            margin-top: 15px;
+        }
+
+        .ingredient-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .ingredient-item input {
+            flex: 1;
+        }
+
+        .ingredient-category {
+            width: 120px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .week-planner {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .meal-manager {
+                grid-template-columns: 1fr;
+            }
+            
+            header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .app-controls {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .week-planner {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-utensils"></i>
+                <span>MealMaster</span>
+            </div>
+            <div class="app-controls">
+                <button class="btn btn-primary" id="savePlan">
+                    <i class="fas fa-save"></i> Save Plan
+                </button>
+                <button class="btn btn-secondary" id="clearPlan">
+                    <i class="fas fa-trash"></i> Clear Plan
+                </button>
+            </div>
+        </header>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="planner">Meal Planner</div>
+            <div class="tab" data-tab="grocery">Grocery List</div>
+            <div class="tab" data-tab="meals">Manage Meals</div>
+        </div>
+
+        <!-- Meal Planner Tab -->
+        <div class="tab-content active" id="planner">
+            <h2>Weekly Meal Plan</h2>
+            <p>Select meals for each day of the week</p>
+            
+            <div class="week-planner">
+                <!-- Days will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Grocery List Tab -->
+        <div class="tab-content" id="grocery">
+            <h2>Grocery List</h2>
+            <p>Your shopping list organized by category</p>
+            
+            <div class="grocery-list">
+                <!-- Categories will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Manage Meals Tab -->
+        <div class="tab-content" id="meals">
+            <h2>Manage Meals</h2>
+            <p>Add, edit or delete meals and their ingredients</p>
+            
+            <div class="meal-manager">
+                <div class="meal-list">
+                    <h3>My Meals</h3>
+                    <!-- Meal list will be populated by JavaScript -->
+                </div>
+                
+                <div class="meal-detail">
+                    <h3>Meal Details</h3>
+                    <div class="form-group">
+                        <label for="mealName">Meal Name</label>
+                        <input type="text" id="mealName" class="form-control" placeholder="Enter meal name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Ingredients</label>
+                        <div class="ingredient-list" id="ingredientList">
+                            <!-- Ingredients will be populated by JavaScript -->
+                        </div>
+                        <button class="btn btn-secondary" id="addIngredient">
+                            <i class="fas fa-plus"></i> Add Ingredient
+                        </button>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" id="saveMeal">
+                            <i class="fas fa-save"></i> Save Meal
+                        </button>
+                        <button class="btn btn-secondary" id="newMeal">
+                            <i class="fas fa-plus"></i> New Meal
+                        </button>
+                        <button class="btn btn-secondary" id="deleteMeal">
+                            <i class="fas fa-trash"></i> Delete Meal
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>MealMaster &copy; 2023 - Plan your meals, simplify your shopping</p>
+        </div>
+    </div>
+
+    <script>
+        // Sample data
+        let meals = [
+            {
+                id: 1,
+                name: "Spaghetti Bolognese",
+                ingredients: [
+                    { name: "Spaghetti", category: "Pasta & Grains", quantity: "400g" },
+                    { name: "Ground Beef", category: "Meat", quantity: "500g" },
+                    { name: "Tomato Sauce", category: "Canned Goods", quantity: "1 jar" },
+                    { name: "Onion", category: "Vegetables", quantity: "1 medium" },
+                    { name: "Garlic", category: "Vegetables", quantity: "2 cloves" }
+                ]
+            },
+            {
+                id: 2,
+                name: "Chicken Stir Fry",
+                ingredients: [
+                    { name: "Chicken Breast", category: "Meat", quantity: "400g" },
+                    { name: "Bell Peppers", category: "Vegetables", quantity: "2" },
+                    { name: "Broccoli", category: "Vegetables", quantity: "1 head" },
+                    { name: "Soy Sauce", category: "Condiments", quantity: "3 tbsp" },
+                    { name: "Rice", category: "Pasta & Grains", quantity: "2 cups" }
+                ]
+            },
+            {
+                id: 3,
+                name: "Greek Salad",
+                ingredients: [
+                    { name: "Cucumber", category: "Vegetables", quantity: "1 large" },
+                    { name: "Tomatoes", category: "Vegetables", quantity: "4" },
+                    { name: "Feta Cheese", category: "Dairy", quantity: "200g" },
+                    { name: "Olives", category: "Canned Goods", quantity: "100g" },
+                    { name: "Olive Oil", category: "Condiments", quantity: "3 tbsp" }
+                ]
+            },
+            {
+                id: 4,
+                name: "Pancakes",
+                ingredients: [
+                    { name: "Flour", category: "Bakery", quantity: "2 cups" },
+                    { name: "Milk", category: "Dairy", quantity: "1.5 cups" },
+                    { name: "Eggs", category: "Dairy", quantity: "2" },
+                    { name: "Butter", category: "Dairy", quantity: "2 tbsp" },
+                    { name: "Maple Syrup", category: "Condiments", quantity: "to serve" }
+                ]
+            }
+        ];
+
+        let weeklyPlan = {
+            monday: null,
+            tuesday: null,
+            wednesday: null,
+            thursday: null,
+            friday: null,
+            saturday: null,
+            sunday: null
+        };
+
+        let selectedMealId = null;
+
+        // DOM elements
+        const tabElements = document.querySelectorAll('.tab');
+        const tabContentElements = document.querySelectorAll('.tab-content');
+        const weekPlannerElement = document.querySelector('.week-planner');
+        const groceryListElement = document.querySelector('.grocery-list');
+        const mealListElement = document.querySelector('.meal-list');
+        const ingredientListElement = document.getElementById('ingredientList');
+        const savePlanButton = document.getElementById('savePlan');
+        const clearPlanButton = document.getElementById('clearPlan');
+        const saveMealButton = document.getElementById('saveMeal');
+        const newMealButton = document.getElementById('newMeal');
+        const deleteMealButton = document.getElementById('deleteMeal');
+        const addIngredientButton = document.getElementById('addIngredient');
+        const mealNameInput = document.getElementById('mealName');
+
+        // Initialize the app
+        function initApp() {
+            // Load data from localStorage if available
+            const savedMeals = localStorage.getItem('meals');
+            const savedPlan = localStorage.getItem('weeklyPlan');
+            
+            if (savedMeals) {
+                meals = JSON.parse(savedMeals);
+            }
+            
+            if (savedPlan) {
+                weeklyPlan = JSON.parse(savedPlan);
+            }
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Render initial views
+            renderWeekPlanner();
+            renderGroceryList();
+            renderMealList();
+            
+            // Select first meal by default
+            if (meals.length > 0) {
+                selectMeal(meals[0].id);
+            }
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Tab switching
+            tabElements.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
+            });
+            
+            // Save and clear plan buttons
+            savePlanButton.addEventListener('click', savePlan);
+            clearPlanButton.addEventListener('click', clearPlan);
+            
+            // Meal management buttons
+            saveMealButton.addEventListener('click', saveMeal);
+            newMealButton.addEventListener('click', createNewMeal);
+            deleteMealButton.addEventListener('click', deleteMeal);
+            addIngredientButton.addEventListener('click', addIngredient);
+            
+            // Meal selection in planner
+            weekPlannerElement.addEventListener('change', (e) => {
+                if (e.target.classList.contains('meal-select')) {
+                    const day = e.target.getAttribute('data-day');
+                    const mealId = e.target.value ? parseInt(e.target.value) : null;
+                    weeklyPlan[day] = mealId;
+                    renderGroceryList();
+                }
+            });
+            
+            // Grocery list item checking
+            groceryListElement.addEventListener('change', (e) => {
+                if (e.target.type === 'checkbox') {
+                    const item = e.target.closest('.grocery-item');
+                    if (e.target.checked) {
+                        item.classList.add('checked');
+                    } else {
+                        item.classList.remove('checked');
+                    }
+                }
+            });
+        }
+
+        // Switch between tabs
+        function switchTab(tabId) {
+            // Update active tab
+            tabElements.forEach(tab => {
+                if (tab.getAttribute('data-tab') === tabId) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // Update active tab content
+            tabContentElements.forEach(content => {
+                if (content.id === tabId) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+        }
+
+        // Render the weekly planner
+        function renderWeekPlanner() {
+            const days = [
+                { id: 'monday', name: 'Monday' },
+                { id: 'tuesday', name: 'Tuesday' },
+                { id: 'wednesday', name: 'Wednesday' },
+                { id: 'thursday', name: 'Thursday' },
+                { id: 'friday', name: 'Friday' },
+                { id: 'saturday', name: 'Saturday' },
+                { id: 'sunday', name: 'Sunday' }
+            ];
+            
+            weekPlannerElement.innerHTML = '';
+            
+            days.forEach(day => {
+                const dayCard = document.createElement('div');
+                dayCard.className = 'day-card';
+                
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'day-header';
+                dayHeader.innerHTML = `
+                    <span>${day.name}</span>
+                    <i class="fas fa-utensils"></i>
+                `;
+                
+                const mealSelect = document.createElement('select');
+                mealSelect.className = 'meal-select';
+                mealSelect.setAttribute('data-day', day.id);
+                
+                // Add empty option
+                const emptyOption = document.createElement('option');
+                emptyOption.value = '';
+                emptyOption.textContent = 'Select a meal';
+                mealSelect.appendChild(emptyOption);
+                
+                // Add meal options
+                meals.forEach(meal => {
+                    const option = document.createElement('option');
+                    option.value = meal.id;
+                    option.textContent = meal.name;
+                    option.selected = weeklyPlan[day.id] === meal.id;
+                    mealSelect.appendChild(option);
+                });
+                
+                dayCard.appendChild(dayHeader);
+                dayCard.appendChild(mealSelect);
+                weekPlannerElement.appendChild(dayCard);
+            });
+        }
+
+        // Render the grocery list
+        function renderGroceryList() {
+            // Collect all ingredients from the weekly plan
+            const allIngredients = [];
+            
+            Object.values(weeklyPlan).forEach(mealId => {
+                if (mealId) {
+                    const meal = meals.find(m => m.id === mealId);
+                    if (meal) {
+                        allIngredients.push(...meal.ingredients);
+                    }
+                }
+            });
+            
+            // Group ingredients by category
+            const categories = {};
+            
+            allIngredients.forEach(ingredient => {
+                if (!categories[ingredient.category]) {
+                    categories[ingredient.category] = [];
+                }
+                
+                // Check if ingredient already exists in category
+                const existingIngredient = categories[ingredient.category].find(
+                    item => item.name === ingredient.name
+                );
+                
+                if (existingIngredient) {
+                    // If it exists, combine quantities (this is a simple implementation)
+                    existingIngredient.quantity = `${existingIngredient.quantity} + ${ingredient.quantity}`;
+                } else {
+                    categories[ingredient.category].push({...ingredient});
+                }
+            });
+            
+            // Render categories
+            groceryListElement.innerHTML = '';
+            
+            if (Object.keys(categories).length === 0) {
+                groceryListElement.innerHTML = '<p>No items in your grocery list. Plan some meals first!</p>';
+                return;
+            }
+            
+            Object.keys(categories).sort().forEach(category => {
+                const categoryCard = document.createElement('div');
+                categoryCard.className = 'category-card';
+                
+                const categoryHeader = document.createElement('div');
+                categoryHeader.className = 'category-header';
+                categoryHeader.innerHTML = `
+                    <span>${category}</span>
+                    <span>${categories[category].length} items</span>
+                `;
+                
+                const categoryItems = document.createElement('div');
+                categoryItems.className = 'category-items';
+                
+                categories[category].forEach(ingredient => {
+                    const groceryItem = document.createElement('div');
+                    groceryItem.className = 'grocery-item';
+                    
+                    groceryItem.innerHTML = `
+                        <input type="checkbox" id="grocery-${ingredient.name.replace(/\s+/g, '-')}">
+                        <label for="grocery-${ingredient.name.replace(/\s+/g, '-')}">
+                            ${ingredient.name} - ${ingredient.quantity}
+                        </label>
+                    `;
+                    
+                    categoryItems.appendChild(groceryItem);
+                });
+                
+                categoryCard.appendChild(categoryHeader);
+                categoryCard.appendChild(categoryItems);
+                groceryListElement.appendChild(categoryCard);
+            });
+        }
+
+        // Render the meal list
+        function renderMealList() {
+            mealListElement.innerHTML = '';
+            
+            if (meals.length === 0) {
+                mealListElement.innerHTML = '<p>No meals yet. Add your first meal!</p>';
+                return;
+            }
+            
+            meals.forEach(meal => {
+                const mealItem = document.createElement('div');
+                mealItem.className = `meal-item ${selectedMealId === meal.id ? 'active' : ''}`;
+                mealItem.setAttribute('data-meal-id', meal.id);
+                
+                mealItem.innerHTML = `
+                    <span>${meal.name}</span>
+                    <span>${meal.ingredients.length} ingredients</span>
+                `;
+                
+                mealItem.addEventListener('click', () => {
+                    selectMeal(meal.id);
+                });
+                
+                mealListElement.appendChild(mealItem);
+            });
+        }
+
+        // Select a meal for editing
+        function selectMeal(mealId) {
+            selectedMealId = mealId;
+            const meal = meals.find(m => m.id === mealId);
+            
+            if (meal) {
+                mealNameInput.value = meal.name;
+                renderIngredientList(meal.ingredients);
+                
+                // Update active state in meal list
+                document.querySelectorAll('.meal-item').forEach(item => {
+                    if (parseInt(item.getAttribute('data-meal-id')) === mealId) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+            }
+        }
+
+        // Render the ingredient list for a meal
+        function renderIngredientList(ingredients) {
+            ingredientListElement.innerHTML = '';
+            
+            ingredients.forEach((ingredient, index) => {
+                const ingredientItem = document.createElement('div');
+                ingredientItem.className = 'ingredient-item';
+                
+                ingredientItem.innerHTML = `
+                    <input type="text" class="form-control ingredient-name" placeholder="Ingredient" value="${ingredient.name}">
+                    <input type="text" class="form-control ingredient-quantity" placeholder="Quantity" value="${ingredient.quantity}">
+                    <select class="form-control ingredient-category">
+                        <option value="Vegetables" ${ingredient.category === 'Vegetables' ? 'selected' : ''}>Vegetables</option>
+                        <option value="Fruits" ${ingredient.category === 'Fruits' ? 'selected' : ''}>Fruits</option>
+                        <option value="Meat" ${ingredient.category === 'Meat' ? 'selected' : ''}>Meat</option>
+                        <option value="Dairy" ${ingredient.category === 'Dairy' ? 'selected' : ''}>Dairy</option>
+                        <option value="Bakery" ${ingredient.category === 'Bakery' ? 'selected' : ''}>Bakery</option>
+                        <option value="Pasta & Grains" ${ingredient.category === 'Pasta & Grains' ? 'selected' : ''}>Pasta & Grains</option>
+                        <option value="Canned Goods" ${ingredient.category === 'Canned Goods' ? 'selected' : ''}>Canned Goods</option>
+                        <option value="Condiments" ${ingredient.category === 'Condiments' ? 'selected' : ''}>Condiments</option>
+                        <option value="Beverages" ${ingredient.category === 'Beverages' ? 'selected' : ''}>Beverages</option>
+                        <option value="Other" ${ingredient.category === 'Other' ? 'selected' : ''}>Other</option>
+                    </select>
+                    <button type="button" class="btn btn-secondary remove-ingredient" data-index="${index}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                ingredientListElement.appendChild(ingredientItem);
+            });
+            
+            // Add event listeners to remove buttons
+            document.querySelectorAll('.remove-ingredient').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const index = parseInt(e.target.closest('.remove-ingredient').getAttribute('data-index'));
+                    removeIngredient(index);
+                });
+            });
+        }
+
+        // Add a new ingredient
+        function addIngredient() {
+            const meal = meals.find(m => m.id === selectedMealId);
+            if (meal) {
+                meal.ingredients.push({
+                    name: '',
+                    category: 'Other',
+                    quantity: ''
+                });
+                renderIngredientList(meal.ingredients);
+            }
+        }
+
+        // Remove an ingredient
+        function removeIngredient(index) {
+            const meal = meals.find(m => m.id === selectedMealId);
+            if (meal && meal.ingredients.length > 1) {
+                meal.ingredients.splice(index, 1);
+                renderIngredientList(meal.ingredients);
+            }
+        }
+
+        // Save the current meal
+        function saveMeal() {
+            if (!selectedMealId) return;
+            
+            const meal = meals.find(m => m.id === selectedMealId);
+            if (meal) {
+                // Update meal name
+                meal.name = mealNameInput.value;
+                
+                // Update ingredients
+                const ingredientNames = document.querySelectorAll('.ingredient-name');
+                const ingredientQuantities = document.querySelectorAll('.ingredient-quantity');
+                const ingredientCategories = document.querySelectorAll('.ingredient-category');
+                
+                meal.ingredients = [];
+                
+                ingredientNames.forEach((input, index) => {
+                    if (input.value.trim() !== '') {
+                        meal.ingredients.push({
+                            name: input.value,
+                            quantity: ingredientQuantities[index].value,
+                            category: ingredientCategories[index].value
+                        });
+                    }
+                });
+                
+                // Update views
+                renderMealList();
+                renderWeekPlanner();
+                renderGroceryList();
+                
+                // Save to localStorage
+                saveToLocalStorage();
+                
+                alert('Meal saved successfully!');
+            }
+        }
+
+        // Create a new meal
+        function createNewMeal() {
+            const newId = meals.length > 0 ? Math.max(...meals.map(m => m.id)) + 1 : 1;
+            
+            const newMeal = {
+                id: newId,
+                name: 'New Meal',
+                ingredients: [
+                    { name: '', category: 'Other', quantity: '' }
+                ]
+            };
+            
+            meals.push(newMeal);
+            selectMeal(newId);
+            renderMealList();
+        }
+
+        // Delete the current meal
+        function deleteMeal() {
+            if (!selectedMealId) return;
+            
+            if (confirm('Are you sure you want to delete this meal?')) {
+                // Remove from meals array
+                meals = meals.filter(m => m.id !== selectedMealId);
+                
+                // Remove from weekly plan
+                Object.keys(weeklyPlan).forEach(day => {
+                    if (weeklyPlan[day] === selectedMealId) {
+                        weeklyPlan[day] = null;
+                    }
+                });
+                
+                // Select another meal or create new one
+                if (meals.length > 0) {
+                    selectMeal(meals[0].id);
+                } else {
+                    createNewMeal();
+                }
+                
+                // Update views
+                renderMealList();
+                renderWeekPlanner();
+                renderGroceryList();
+                
+                // Save to localStorage
+                saveToLocalStorage();
+            }
+        }
+
+        // Save the weekly plan
+        function savePlan() {
+            saveToLocalStorage();
+            alert('Weekly plan saved successfully!');
+        }
+
+        // Clear the weekly plan
+        function clearPlan() {
+            if (confirm('Are you sure you want to clear your weekly plan?')) {
+                Object.keys(weeklyPlan).forEach(day => {
+                    weeklyPlan[day] = null;
+                });
+                renderWeekPlanner();
+                renderGroceryList();
+                saveToLocalStorage();
+            }
+        }
+
+        // Save data to localStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('meals', JSON.stringify(meals));
+            localStorage.setItem('weeklyPlan', JSON.stringify(weeklyPlan));
+        }
+
+        // Initialize the app when the DOM is loaded
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
