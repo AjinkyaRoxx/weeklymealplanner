@@ -1,0 +1,46 @@
+[
+  {
+    "id": 1,
+    "name": "Spaghetti Bolognese",
+    "ingredients": [
+      { "name": "Spaghetti", "category": "Pasta & Grains", "quantity": "400g" },
+      { "name": "Ground Beef", "category": "Meat", "quantity": "500g" },
+      { "name": "Tomato Sauce", "category": "Canned Goods", "quantity": "1 jar" },
+      { "name": "Onion", "category": "Vegetables", "quantity": "1 medium" },
+      { "name": "Garlic", "category": "Vegetables", "quantity": "2 cloves" }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Chicken Stir Fry",
+    "ingredients": [
+      { "name": "Chicken Breast", "category": "Meat", "quantity": "400g" },
+      { "name": "Bell Peppers", "category": "Vegetables", "quantity": "2" },
+      { "name": "Broccoli", "category": "Vegetables", "quantity": "1 head" },
+      { "name": "Soy Sauce", "category": "Condiments", "quantity": "3 tbsp" },
+      { "name": "Rice", "category": "Pasta & Grains", "quantity": "2 cups" }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Greek Salad",
+    "ingredients": [
+      { "name": "Cucumber", "category": "Vegetables", "quantity": "1 large" },
+      { "name": "Tomatoes", "category": "Vegetables", "quantity": "4" },
+      { "name": "Feta Cheese", "category": "Dairy", "quantity": "200g" },
+      { "name": "Olives", "category": "Canned Goods", "quantity": "100g" },
+      { "name": "Olive Oil", "category": "Condiments", "quantity": "3 tbsp" }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Pancakes",
+    "ingredients": [
+      { "name": "Flour", "category": "Bakery", "quantity": "2 cups" },
+      { "name": "Milk", "category": "Dairy", "quantity": "1.5 cups" },
+      { "name": "Eggs", "category": "Dairy", "quantity": "2" },
+      { "name": "Butter", "category": "Dairy", "quantity": "2 tbsp" },
+      { "name": "Maple Syrup", "category": "Condiments", "quantity": "to serve" }
+    ]
+  }
+]
