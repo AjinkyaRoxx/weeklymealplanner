@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MealMaster - Weekly Meal Planner</title>
+    <title>MealMaster - Family Meal Planner</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -91,7 +91,12 @@
             color: var(--primary);
         }
 
-        .btn:hover {
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: var(--shadow);
         }
@@ -320,12 +325,63 @@
             margin-top: 20px;
         }
 
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .data-config {
+            background-color: var(--light);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+        }
+
+        .data-config h3 {
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .data-config p {
+            margin-bottom: 15px;
+            color: var(--gray);
+        }
+
         .footer {
             text-align: center;
             margin-top: 40px;
             padding: 20px;
             color: var(--gray);
             font-size: 0.9rem;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: var(--success);
+            color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
         }
 
         @media (max-width: 768px) {
@@ -360,6 +416,8 @@
     </style>
 </head>
 <body>
+    <div class="notification" id="notification"></div>
+    
     <div class="container">
         <header>
             <div class="logo">
@@ -404,6 +462,27 @@
 
         <!-- Manage Meals Tab -->
         <div class="tab-content" id="meals">
+            <div class="data-config">
+                <h3>Data Management</h3>
+                <p>Load meals from a JSON file or manage them locally</p>
+                <div class="form-group">
+                    <label for="jsonUrl">JSON File URL</label>
+                    <input type="text" id="jsonUrl" class="form-control" placeholder="https://example.com/meals.json">
+                    <small>Leave empty to use the default meals.json file</small>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="loadJson">
+                        <i class="fas fa-download"></i> Load from JSON
+                    </button>
+                    <button class="btn btn-secondary" id="exportJson">
+                        <i class="fas fa-file-export"></i> Export to JSON
+                    </button>
+                    <button class="btn btn-secondary" id="resetData">
+                        <i class="fas fa-undo"></i> Reset to Default
+                    </button>
+                </div>
+            </div>
+            
             <h2>Manage Meals</h2>
             <p>Add, edit or delete meals and their ingredients</p>
             
@@ -446,59 +525,13 @@
         </div>
 
         <div class="footer">
-            <p>MealMaster by AjinkyaRoxx &copy; 2025 - Plan your meals, simplify your shopping</p>
+            <p>MealMaster &copy; 2023 - Plan your meals, simplify your shopping</p>
         </div>
     </div>
 
     <script>
-        // Sample data
-        let meals = [
-            {
-                id: 1,
-                name: "Spaghetti Bolognese",
-                ingredients: [
-                    { name: "Spaghetti", category: "Pasta & Grains", quantity: "400g" },
-                    { name: "Ground Beef", category: "Meat", quantity: "500g" },
-                    { name: "Tomato Sauce", category: "Canned Goods", quantity: "1 jar" },
-                    { name: "Onion", category: "Vegetables", quantity: "1 medium" },
-                    { name: "Garlic", category: "Vegetables", quantity: "2 cloves" }
-                ]
-            },
-            {
-                id: 2,
-                name: "Chicken Stir Fry",
-                ingredients: [
-                    { name: "Chicken Breast", category: "Meat", quantity: "400g" },
-                    { name: "Bell Peppers", category: "Vegetables", quantity: "2" },
-                    { name: "Broccoli", category: "Vegetables", quantity: "1 head" },
-                    { name: "Soy Sauce", category: "Condiments", quantity: "3 tbsp" },
-                    { name: "Rice", category: "Pasta & Grains", quantity: "2 cups" }
-                ]
-            },
-            {
-                id: 3,
-                name: "Greek Salad",
-                ingredients: [
-                    { name: "Cucumber", category: "Vegetables", quantity: "1 large" },
-                    { name: "Tomatoes", category: "Vegetables", quantity: "4" },
-                    { name: "Feta Cheese", category: "Dairy", quantity: "200g" },
-                    { name: "Olives", category: "Canned Goods", quantity: "100g" },
-                    { name: "Olive Oil", category: "Condiments", quantity: "3 tbsp" }
-                ]
-            },
-            {
-                id: 4,
-                name: "Pancakes",
-                ingredients: [
-                    { name: "Flour", category: "Bakery", quantity: "2 cups" },
-                    { name: "Milk", category: "Dairy", quantity: "1.5 cups" },
-                    { name: "Eggs", category: "Dairy", quantity: "2" },
-                    { name: "Butter", category: "Dairy", quantity: "2 tbsp" },
-                    { name: "Maple Syrup", category: "Condiments", quantity: "to serve" }
-                ]
-            }
-        ];
-
+        // Data structure
+        let meals = [];
         let weeklyPlan = {
             monday: null,
             tuesday: null,
@@ -510,6 +543,7 @@
         };
 
         let selectedMealId = null;
+        const DEFAULT_JSON_URL = 'meals.json';
 
         // DOM elements
         const tabElements = document.querySelectorAll('.tab');
@@ -525,15 +559,24 @@
         const deleteMealButton = document.getElementById('deleteMeal');
         const addIngredientButton = document.getElementById('addIngredient');
         const mealNameInput = document.getElementById('mealName');
+        const jsonUrlInput = document.getElementById('jsonUrl');
+        const loadJsonButton = document.getElementById('loadJson');
+        const exportJsonButton = document.getElementById('exportJson');
+        const resetDataButton = document.getElementById('resetData');
+        const notificationElement = document.getElementById('notification');
 
         // Initialize the app
-        function initApp() {
+        async function initApp() {
             // Load data from localStorage if available
             const savedMeals = localStorage.getItem('meals');
             const savedPlan = localStorage.getItem('weeklyPlan');
             
             if (savedMeals) {
                 meals = JSON.parse(savedMeals);
+                showNotification('Loaded meals from local storage');
+            } else {
+                // Load default JSON file if no local data
+                await loadMealsFromJson(DEFAULT_JSON_URL);
             }
             
             if (savedPlan) {
@@ -574,6 +617,14 @@
             deleteMealButton.addEventListener('click', deleteMeal);
             addIngredientButton.addEventListener('click', addIngredient);
             
+            // JSON data management buttons
+            loadJsonButton.addEventListener('click', () => {
+                const url = jsonUrlInput.value || DEFAULT_JSON_URL;
+                loadMealsFromJson(url);
+            });
+            exportJsonButton.addEventListener('click', exportToJson);
+            resetDataButton.addEventListener('click', resetToDefault);
+            
             // Meal selection in planner
             weekPlannerElement.addEventListener('change', (e) => {
                 if (e.target.classList.contains('meal-select')) {
@@ -595,6 +646,83 @@
                     }
                 }
             });
+        }
+
+        // Load meals from JSON file
+        async function loadMealsFromJson(url) {
+            loadJsonButton.disabled = true;
+            loadJsonButton.innerHTML = '<div class="loading"></div> Loading...';
+            
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                
+                // Validate the data structure
+                if (Array.isArray(data)) {
+                    meals = data;
+                    saveToLocalStorage();
+                    renderMealList();
+                    renderWeekPlanner();
+                    
+                    if (meals.length > 0) {
+                        selectMeal(meals[0].id);
+                    }
+                    
+                    showNotification(`Successfully loaded ${meals.length} meals from JSON file`);
+                } else {
+                    throw new Error('Invalid JSON structure: Expected an array of meals');
+                }
+            } catch (error) {
+                console.error('Error loading JSON:', error);
+                showNotification('Error loading meals from JSON file', 'error');
+            } finally {
+                loadJsonButton.disabled = false;
+                loadJsonButton.innerHTML = '<i class="fas fa-download"></i> Load from JSON';
+            }
+        }
+
+        // Export meals to JSON file
+        function exportToJson() {
+            const dataStr = JSON.stringify(meals, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'meals.json';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showNotification('Meals exported to JSON file');
+        }
+
+        // Reset to default meals
+        async function resetToDefault() {
+            if (confirm('Are you sure you want to reset to default meals? This will replace all your current meals.')) {
+                await loadMealsFromJson(DEFAULT_JSON_URL);
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            notificationElement.textContent = message;
+            notificationElement.className = 'notification';
+            notificationElement.classList.add('show');
+            
+            if (type === 'error') {
+                notificationElement.style.backgroundColor = '#dc3545';
+            } else {
+                notificationElement.style.backgroundColor = '#28a745';
+            }
+            
+            setTimeout(() => {
+                notificationElement.classList.remove('show');
+            }, 3000);
         }
 
         // Switch between tabs
@@ -750,7 +878,7 @@
             mealListElement.innerHTML = '';
             
             if (meals.length === 0) {
-                mealListElement.innerHTML = '<p>No meals yet. Add your first meal!</p>';
+                mealListElement.innerHTML = '<p>No meals yet. Add your first meal or load from a JSON file!</p>';
                 return;
             }
             
@@ -888,7 +1016,7 @@
                 // Save to localStorage
                 saveToLocalStorage();
                 
-                alert('Meal saved successfully!');
+                showNotification('Meal saved successfully!');
             }
         }
 
@@ -938,13 +1066,15 @@
                 
                 // Save to localStorage
                 saveToLocalStorage();
+                
+                showNotification('Meal deleted successfully');
             }
         }
 
         // Save the weekly plan
         function savePlan() {
             saveToLocalStorage();
-            alert('Weekly plan saved successfully!');
+            showNotification('Weekly plan saved successfully!');
         }
 
         // Clear the weekly plan
@@ -956,6 +1086,7 @@
                 renderWeekPlanner();
                 renderGroceryList();
                 saveToLocalStorage();
+                showNotification('Weekly plan cleared');
             }
         }
 
